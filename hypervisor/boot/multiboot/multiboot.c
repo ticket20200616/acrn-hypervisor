@@ -11,6 +11,9 @@
 #include "multiboot_priv.h"
 
 /**
+ * @brief Parse multiboot MBI information, and save them in acrn boot information.
+ * @param[out] abi Acrn boot information pointer that used to save parsed multiboot MBI information.
+ * @param mb_info Multiboot MBI information pointer that will be parsed.
  * @pre abi != NULL
  */
 int32_t multiboot_to_acrn_bi(struct acrn_boot_info *abi, void *mb_info) {

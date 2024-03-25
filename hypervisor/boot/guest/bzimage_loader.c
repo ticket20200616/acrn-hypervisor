@@ -16,7 +16,7 @@
 #include <errno.h>
 #include <logmsg.h>
 
-#define DBG_LEVEL_VM_BZIMAGE	6U
+#define DBG_LEVEL_VM_BZIMAGE	6U /**< Debug level for this file. */
 
 /* Define a memory block to store LaaG VM load params in guest address space
  * The params including:
@@ -30,19 +30,51 @@
  * should be able to accommodate it so that avoid the trampoline corruption. So the params size is:
  * (MEM_1K + MEM_4K + MEM_2K + 40B * MAX_EFI_MMAP_ENTRIES + MEM_8K)
  */
+
+/**
+ * @brief bzImage load parameters size in byte.
+ */
 #define BZIMG_LOAD_PARAMS_SIZE			(MEM_1K * 15U + MAX_EFI_MMAP_ENTRIES * sizeof(struct efi_memory_desc))
+/**
+ * @brief Get bzImage GDT load address in GPA.
+ * @param load_params_gpa bzImage parameters base address in GPA.
+ * @retval The address in GPA.
+ */
 #define BZIMG_INITGDT_GPA(load_params_gpa)	((load_params_gpa) + 0UL)
+/**
+ * @brief Get bzImage zero page load address in GPA.
+ * @param load_params_gpa bzImage parameters base address in GPA.
+ * @retval The address in GPA.
+ */
 #define BZIMG_ZEROPAGE_GPA(load_params_gpa)	((load_params_gpa) + MEM_1K)
+/**
+ * @brief Get bzImage cmdline load address in GPA.
+ * @param load_params_gpa bzImage parameters base address in GPA.
+ * @retval The address in GPA.
+ */
 #define BZIMG_CMDLINE_GPA(load_params_gpa)	((load_params_gpa) + MEM_1K + MEM_4K)
+/**
+ * @brief Get bzImage efi memory map load address in GPA.
+ * @param load_params_gpa bzImage parameters base address in GPA.
+ * @retval The address in GPA.
+ */
 #define BZIMG_EFIMMAP_GPA(load_params_gpa)	((load_params_gpa) + MEM_1K + MEM_4K + MEM_2K)
 
 /* TODO:
  * The value is referenced from Linux boot protocal for old kernels,
  * but this should be configurable for different OS. */
-#define DEFAULT_RAMDISK_GPA_MAX		0x37ffffffUL
+#define DEFAULT_RAMDISK_GPA_MAX		0x37ffffffUL  /**< Max address in GPA for ramdisk load. */
 
-#define PRE_VM_MAX_RAM_ADDR_BELOW_4GB		(VIRT_ACPI_DATA_ADDR - 1UL)
+#define PRE_VM_MAX_RAM_ADDR_BELOW_4GB		(VIRT_ACPI_DATA_ADDR - 1UL)  /**< Max address in GPA for pre-launched VM. */
 
+/**
+ * @brief Calculate initrd load address in GPA.
+ *
+ * @param[inout] vm The VM containing bzImage kernel information.
+ * @param kernel_start Kernel loaded address in GPA.
+ *
+ * @return Initrd load address in GPA.
+ */
 static void *get_initrd_load_addr(struct acrn_vm *vm, uint64_t kernel_start)
 {
 	uint64_t ramdisk_load_gpa = INVALID_GPA;
@@ -121,6 +153,13 @@ static void *get_initrd_load_addr(struct acrn_vm *vm, uint64_t kernel_start)
 }
 
 /**
+ * @brief Calculate bzImage kernel load address in GPA.
+ *
+ * @param[inout] vm The VM containing bzImage kernel information.
+ *
+ * @retval NULL no suiltable memory space to load kernel.
+ * @retval non-NULL The address in GPA that can load kernel.
+ *
  * @pre vm != NULL
  */
 static void *get_bzimage_kernel_load_addr(struct acrn_vm *vm)
@@ -238,6 +277,13 @@ static uint16_t create_service_vm_efi_mmap_desc(struct acrn_vm *vm, struct efi_m
 #endif
 
 /**
+ * @brief Add memory map information in zero page.
+ *
+ * @param[out] zp The zero page to be added.
+ * @param vm vm The VM containing memory map information.
+ *
+ * @retval Memory map entries number.
+ *
  * @pre zp != NULL && vm != NULL
  */
 static uint32_t create_zeropage_e820(struct zero_page *zp, const struct acrn_vm *vm)
@@ -257,6 +303,13 @@ static uint32_t create_zeropage_e820(struct zero_page *zp, const struct acrn_vm 
 }
 
 /**
+ * @brief Create zero page for kernel.
+ *
+ * @param[inout] vm The VM containing bzImage kernel information.
+ * @param load_params_gpa Kernel boot params loaded address in GPA.
+ *
+ * @return Zero page address in GPA.
+ *
  * @pre vm != NULL
  * @pre (vm->min_mem_addr <= kernel_load_addr) && (kernel_load_addr < vm->max_mem_addr)
  */
@@ -328,6 +381,14 @@ static uint64_t create_zero_page(struct acrn_vm *vm, uint64_t load_params_gpa)
 }
 
 /**
+ * @brief Load bzImage kernel according to various information.
+ *
+ * @param[inout] vm The VM containing bzImage kernel information.
+ * @param vcpu The vcpu associated to the kernel.
+ * @param load_params_gpa Kernel boot params loaded address in GPA.
+ * @param kernel_load_gpa Kernel loaded address in GPA.
+ *
+ * @return None
  * @pre vm != NULL
  */
 static void load_bzimage(struct acrn_vm *vm, struct acrn_vcpu *vcpu,

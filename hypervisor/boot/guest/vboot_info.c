@@ -21,9 +21,16 @@
 #include <vboot.h>
 #include <vacpi.h>
 
-#define DBG_LEVEL_BOOT	6U
+#define DBG_LEVEL_BOOT	6U  /**< Debug level for this file. */
 
 /**
+ * @brief Assign ramdisk module to VM.
+ *
+ * @param[out] vm The VM to be assigned.
+ * @param mod The ramdisk module.
+ *
+ * @return None
+ *
  * @pre vm != NULL && mod != NULL
  */
 static void init_vm_ramdisk_info(struct acrn_vm *vm, const struct abi_module *mod)
@@ -37,6 +44,13 @@ static void init_vm_ramdisk_info(struct acrn_vm *vm, const struct abi_module *mo
 }
 
 /**
+ * @brief Assign ACPI module to VM.
+ *
+ * @param[out] vm The VM to be assigned.
+ * @param mod The ACPI module.
+ *
+ * @return None
+ *
  * @pre vm != NULL && mod != NULL
  */
 static void init_vm_acpi_info(struct acrn_vm *vm, const struct abi_module *mod)
@@ -47,6 +61,14 @@ static void init_vm_acpi_info(struct acrn_vm *vm, const struct abi_module *mod)
 }
 
 /**
+ * @brief Assign kernel module to VM.
+ *
+ * @param[inout] vm The VM to be assigned.
+ * @param mod The kernel module.
+ *
+ * @retval 0 No errors.
+ * @retval -EINVAL The module is invalid.
+ *
  * @pre vm != NULL && mod != NULL
  */
 static int32_t init_vm_kernel_info(struct acrn_vm *vm, const struct abi_module *mod)
@@ -71,10 +93,19 @@ static int32_t init_vm_kernel_info(struct acrn_vm *vm, const struct abi_module *
 	return ret;
 }
 
-/* cmdline parsed from abi module string, for pre-launched VMs and Service VM only. */
+/**
+ * @brief cmdline parsed from abi module string, for pre-launched VMs and Service VM only.
+ */
 static char mod_cmdline[PRE_VM_NUM + SERVICE_VM_NUM][MAX_BOOTARGS_SIZE] = { 0 };
 
 /**
+ *
+ * @brief Assign boot arguments to VM.
+ * @param[inout] vm The VM to be assigned.
+ * @param abi The acrn boot info that contains boot arguments.
+ *
+ * @return None
+ *
  * @pre vm != NULL && abi != NULL
  */
 static void init_vm_bootargs_info(struct acrn_vm *vm, const struct acrn_boot_info *abi)
@@ -122,8 +153,6 @@ static void init_vm_bootargs_info(struct acrn_vm *vm, const struct acrn_boot_inf
 
 }
 
-/* @pre abi != NULL && tag != NULL
- */
 struct abi_module *get_mod_by_tag(const struct acrn_boot_info *abi, const char *tag)
 {
 	uint32_t i;
@@ -156,7 +185,20 @@ struct abi_module *get_mod_by_tag(const struct acrn_boot_info *abi, const char *
 	return mod;
 }
 
-/* @pre vm != NULL && abi != NULL
+/**
+ *
+ * @brief Assign acrn boot information to VM.
+ *
+ * This function may call init_vm_bootargs_info(), init_vm_kernel_info(), init_vm_acpi_info(), or init_vm_ramdisk_info()
+ * if the corresponding information presents in acrn boot information.
+ *
+ * @param[inout] vm The VM to be assigned.
+ * @param abi The acrn boot information.
+ *
+ * @retval 0 No errors.
+ * @retval -EINVAL The abi is invalid.
+ *
+ * @pre vm != NULL && abi != NULL
  */
 static int32_t init_vm_sw_load(struct acrn_vm *vm, const struct acrn_boot_info *abi)
 {
@@ -209,14 +251,6 @@ static int32_t init_vm_sw_load(struct acrn_vm *vm, const struct acrn_boot_info *
 	return ret;
 }
 
-/**
- * @param[inout] vm pointer to a vm descriptor
- *
- * @retval 0 on success
- * @retval -EINVAL on invalid parameters
- *
- * @pre vm != NULL
- */
 int32_t init_vm_boot_info(struct acrn_vm *vm)
 {
 	struct acrn_boot_info *abi = get_acrn_boot_info();

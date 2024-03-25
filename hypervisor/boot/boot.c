@@ -11,11 +11,12 @@
 #include <rtl.h>
 #include <logmsg.h>
 
+/**
+ * @brief The instance of acrn boot information.
+ * One can access it by get_acrn_boot_info().
+ */
 static struct acrn_boot_info acrn_bi = { 0 };
 
-/**
- * @pre (p_start != NULL) && (p_end != NULL)
- */
 void get_boot_mods_range(uint64_t *p_start, uint64_t *p_end)
 {
 	uint32_t i;
@@ -70,9 +71,6 @@ int32_t sanitize_acrn_boot_info(struct acrn_boot_info *abi)
 	return abi_status;
 }
 
-/*
- * @post retval != NULL
- */
 struct acrn_boot_info *get_acrn_boot_info(void)
 {
 	return &acrn_bi;
